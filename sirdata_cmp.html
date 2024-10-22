@@ -27,13 +27,22 @@
             // Request consent status for Adjust Digital A/S (597) and Google Advertising Products (755)
             window.__tcfapi('getTCData', 2, function(tcData, success) {
                 if (success) {
-                    const vendorConsents = tcData.vendor.consents;
-                    const adjustConsent = vendorConsents[597];
-                    const googleConsent = vendorConsents[755];
+                    // Ensure the vendor object and consents are defined before accessing them
+                    if (tcData.vendor && tcData.vendor.consents) {
+                        const vendorConsents = tcData.vendor.consents;
+                        const adjustConsent = vendorConsents[597];
+                        const googleConsent = vendorConsents[755];
 
-                    console.log("Adjust Digital A/S (597) consent: ", adjustConsent);
-                    console.log("Google Advertising Products (755) consent: ", googleConsent);
+                        console.log("Adjust Digital A/S (597) consent: ", adjustConsent);
+                        console.log("Google Advertising Products (755) consent: ", googleConsent);
+                    } else {
+                        console.log("Vendor consents data is not available.");
+                    }
+
+                    // Output the TC String
                     console.log("TC String:", tcData.tcString);
+                } else {
+                    console.error("Failed to retrieve TCData.");
                 }
             }, [597, 755]);
         };
