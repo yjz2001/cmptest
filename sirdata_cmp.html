@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consent Management</title>
+
+    <!-- Add Sirdata CMP installation tag -->
+    <script data-cfasync="false" src="https://cache.consentframework.com/js/pa/43928/c/OMJpR/stub" referrerpolicy="unsafe-url" charset="utf-8" type="text/javascript"></script>
+    <script data-cfasync="false" src="https://choices.consentframework.com/js/pa/43928/c/OMJpR/cmp" referrerpolicy="unsafe-url" charset="utf-8" async></script>
+
+
+    <script>
+        // Replace 'PARTNER_ID' and 'CONFIG_ID' with your credentials
+        const PARTNER_ID = '43928';
+        const CONFIG_ID = 'OMJpR';
+
+        // Display CMP UI when the page loads
+        window.onload = function() {
+            window.__tcfapi('addEventListener', 2, function(tcData, success) {
+                if (success) {
+                    console.log("CMP listener added with ID: " + tcData.listenerId);
+                    console.log("Current event status: " + tcData.eventStatus);
+                }
+            });
+
+            // Print TCData when the user interacts with the CMP
+            window.__tcfapi('getTCData', 2, function(tcData, success) {
+                if (success) {
+                    console.log('TCData:', tcData);
+                }
+            });
+        };
+
+        // Optionally, resurface the CMP if the user wants to change consent later
+        function showConsentUI() {
+            window.__tcfapi('displayUI', 2);
+        }
+    </script>
+</head>
+<body>
+
+    <h1>Consent Management Example</h1>
+    
+    <!-- Button to resurface the CMP at any time -->
+    <button onclick="showConsentUI()">Revisit Consent Choices</button>
+
+    
+    [Company name] obtains your consent in accordance with the policies and technical specifications of the IAB Europe Transparency & Consent Framework. It uses the Consent Management Platform n°92.<br/><br/>
+
+    You can change your choices at any time by <a href='javascript:Sddan.cmp.displayUI()'>clicking here</a>.
+
+</body>
+</html>
