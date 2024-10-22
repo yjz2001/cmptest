@@ -9,7 +9,6 @@
     <script data-cfasync="false" src="https://cache.consentframework.com/js/pa/43928/c/OMJpR/stub" referrerpolicy="unsafe-url" charset="utf-8" type="text/javascript"></script>
     <script data-cfasync="false" src="https://choices.consentframework.com/js/pa/43928/c/OMJpR/cmp" referrerpolicy="unsafe-url" charset="utf-8" async></script>
 
-
     <script>
         // Replace 'PARTNER_ID' and 'CONFIG_ID' with your credentials
         const PARTNER_ID = '43928';
@@ -17,6 +16,7 @@
 
         // Display CMP UI when the page loads
         window.onload = function() {
+            // Add an event listener for CMP events
             window.__tcfapi('addEventListener', 2, function(tcData, success) {
                 if (success) {
                     console.log("CMP listener added with ID: " + tcData.listenerId);
@@ -24,12 +24,18 @@
                 }
             });
 
-            // Print TCData when the user interacts with the CMP
+            // Request consent status for Adjust Digital A/S (597) and Google Advertising Products (755)
             window.__tcfapi('getTCData', 2, function(tcData, success) {
                 if (success) {
-                    console.log('TCData:', tcData);
+                    const vendorConsents = tcData.vendor.consents;
+                    const adjustConsent = vendorConsents[597];
+                    const googleConsent = vendorConsents[755];
+
+                    console.log("Adjust Digital A/S (597) consent: ", adjustConsent);
+                    console.log("Google Advertising Products (755) consent: ", googleConsent);
+                    console.log("TC String:", tcData.tcString);
                 }
-            });
+            }, [597, 755]);
         };
 
         // Optionally, resurface the CMP if the user wants to change consent later
@@ -44,7 +50,6 @@
     
     <!-- Button to resurface the CMP at any time -->
     <button onclick="showConsentUI()">Revisit Consent Choices</button>
-
 
     <div></div>
     
