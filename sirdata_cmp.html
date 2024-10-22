@@ -10,41 +10,13 @@
     <script data-cfasync="false" src="https://choices.consentframework.com/js/pa/43928/c/OMJpR/cmp" referrerpolicy="unsafe-url" charset="utf-8" async></script>
 
     <script>
-        // Replace 'PARTNER_ID' and 'CONFIG_ID' with your credentials
-        const PARTNER_ID = '43928';
-        const CONFIG_ID = 'OMJpR';
-
-        // Function to display consent popup
-        
-        // Function to fetch TCData and output tcString
-        function fetchTCData() {
-            window.__tcfapi('getTCData', 2, function(tcData, success) {
-                if (success) {
-                    if (tcData.vendor && tcData.vendor.consents) {
-                        const vendorConsents = tcData.vendor.consents;
-                        const adjustConsent = vendorConsents[597];
-                        const googleConsent = vendorConsents[755];
-
-                        console.log("Adjust Digital A/S (597) consent: ", adjustConsent);
-                        console.log("Google Advertising Products (755) consent: ", googleConsent);
-                    }
-
-                    // Output the TC String
-                    console.log("TC String:", tcData.tcString);
-
-                    // If tcString is empty, prompt user for consent
-                    if (!tcData.tcString) {
-                        showConsentPopup();
-                    }
-                } else {
-                    console.error("Failed to retrieve TCData.");
-                }
-            }, [597, 755]);
+        // Function to display the consent management UI
+        function showConsentUI() {
+            window.__tcfapi('displayUI', 2);
         }
 
         // Display CMP UI when the page loads
         window.onload = function() {
-            // Add an event listener for CMP events
             window.__tcfapi('addEventListener', 2, function(tcData, success) {
                 if (success) {
                     console.log("CMP listener added with ID: " + tcData.listenerId);
@@ -52,14 +24,14 @@
                 }
             });
 
-            // Fetch the TCData initially
-            fetchTCData();
+            // Initial consent data request
+            window.__tcfapi('getTCData', 2, function(tcData, success) {
+                if (success) {
+                    console.log("TCData:", tcData);
+                    console.log("TC String:", tcData.tcString)
+                }
+            });
         };
-
-        // Optionally, resurface the CMP if the user wants to change consent later
-        function showConsentUI() {
-            window.__tcfapi('displayUI', 2);
-        }
     </script>
 </head>
 <body>
@@ -71,9 +43,11 @@
 
     <div></div>
     
-    [Company name] obtains your consent in accordance with the policies and technical specifications of the IAB Europe Transparency & Consent Framework. It uses the Consent Management Platform n°92.<br/><br/>
+    <!-- Link to resurface CMP UI -->
+    [Company Name] obtains your consent in accordance with the policies and technical specifications of the IAB Europe Transparency & Consent Framework. It uses the Consent Management Platform n°92.<br/><br/>
 
-    You can change your choices at any time by <a href='javascript:Sddan.cmp.displayUI()'>clicking here</a>.
+    You can change your choices at any time by <a href='javascript:showConsentUI()'>clicking here</a>.
 
 </body>
 </html>
+
