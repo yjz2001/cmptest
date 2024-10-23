@@ -43,8 +43,18 @@
     <script>
         // 显示 CMP UI 按钮事件
         document.getElementById('promptConsentUI').onclick = function() {
-            console.log('1');
-            tcfApi('displayUI', 2).then(tcData => {
+             console.log('1');
+            tcfApi('getTCData', 2).then(tcData => {
+                console.log('当前 TC Data:', tcData);
+
+                // 检查 displayStatus 是否为 'enabled'
+                if (tcData.displayStatus === 'enabled') {
+                    return tcfApi('displayUI', 2);
+                } else {
+                    console.warn('当前 CMP UI 被禁用，无法显示');
+                    return Promise.reject(new Error('当前 CMP UI 被禁用'));
+                }
+            }).then(tcData => {
                 console.log('用户操作后的 TC String:', tcData.tcString);
             }).catch(error => {
                 console.error('显示 CMP UI 时发生错误:', error);
