@@ -34,50 +34,51 @@
     </script>
 </head>
 <body>
-    <h1>欢迎使用 Sirdata CMP 示例</h1>
-
-    <!-- 同意按钮 -->
-    <button id="promptConsentUI" class="btn">我的同意选择</button>
-    <a href="javascript:window.Sddan.cmp.displayUI();">Cookies settings</a>
-
-    <script>
-        // 使用 TCF API 与 CMP 进行交互
-        function tcfApi(command, version) {
-            return new Promise((resolve, reject) => {
-                window.__tcfapi(command, version, (response, success) => {
-                    if (success) {
-                        resolve(response);
-                    } else {
-                        reject(new Error('TCF API 调用失败'));
-                    }
-                });
-            });
-        }
-
-        // 检查 CMP 是否加载
-        tcfApi('ping', 2).then(pingReturn => {
-            console.log('CMP 已加载:', pingReturn);
-        }).catch(error => {
-            console.error(error);
-        });
-
-        // 当用户点击按钮时显示 CMP UI 并记录用户的选择
-        document.getElementById('promptConsentUI').onclick = function() {
-            tcfApi('getTCData', 2).then(tcData => {
-                console.log('当前 TC Data:', tcData);
-
-                if (tcData.displayStatus === 'enabled') {
-                    return tcfApi('displayUI', 2);
-                } else {
-                    console.warn('当前 CMP UI 被禁用，无法显示');
-                    return Promise.reject(new Error('当前 CMP UI 被禁用'));
-                }
-            }).then(tcData => {
-                console.log('用户操作后的 TC String:', tcData.tcString);
-            }).catch(error => {
-                console.error('显示 CMP UI 时发生错误:', error);
-            });
-        };
-    </script>
+  <button id="promptConsentUI" class="btn" on="tap:consent.prompt(consent=sirdata)" role="button">我的同意选项</button>
 </body>
+<script>
+  // 定义处理CMP结果的函数
+  function logConsentData() {
+    window.__tcfapi("getTCData", 2, function (tcData, success) {
+      if (!success) {
+        console.log("无法获取 TCData");
+        return;
+      }
+
+      // 输出TC String
+      console.log("TC String: ", tcData.tcString);
+
+      // 判断是否适用GDPR
+      if (!tcData.gdprApplies) {
+        console.log("GDPR 不适用");
+      }
+
+      // 输出所有 consent 状态和合法利益状态
+      console.log("Vendor Consents: ", tcData.vendor.consents);
+      console.log("Vendor Legitimate Interests: ", tcData.vendor.legitimateInterests);
+      console.log("Purpose Consents: ", tcData.purpose.consents);
+      console.log("Purpose Legitimate Interests: ", tcData.purpose.legitimateInterests);
+
+      // 检查不同 SDK 的 consent 状态，例如 Google 和其他第三方
+      const sdkVendorIds = [755, 597, 1316, 9, 8]; // 这些是你提供的 SDK ID
+      sdkVendorIds.forEach((vendorId) => {
+        console.log(`Vendor ID ${vendorId} 的 consent 状态: `, tcData.vendor.consents[vendorId]);
+        console.log(`Vendor ID ${vendorId} 的合法利益状态: `, tcData.vendor.legitimateInterests[vendorId]);
+      });
+    });
+  }
+
+  // 当用户确认或重新确认他们的选择时，监听并输出TC Data
+  window.__tcfapi("addEventListener", 2, function (tcData, success) {
+      console.log('1')
+    if (success) {
+      console.log("用户操作完成，输出 TC Data");
+      logConsentData();
+    }
+  });
+
+  // 页面加载完成时，也获取一次当前的 consent 状态
+  window.addEventListener('load', logConsentData);
+</script>
+
 </html>
