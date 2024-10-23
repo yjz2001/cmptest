@@ -8,19 +8,31 @@
     <script data-cfasync="false" src="https://cache.consentframework.com/js/pa/43928/c/OMJpR/stub" referrerpolicy="unsafe-url" charset="utf-8" type="text/javascript"></script>
     <script data-cfasync="false" src="https://choices.consentframework.com/js/pa/43928/c/OMJpR/cmp" referrerpolicy="unsafe-url" async></script>
     <script>
+        function tcfApi(command, version, callback) {
+            return new Promise((resolve, reject) => {
+                window.__tcfapi(command, version, (response, success) => {
+                    if (success) {
+                        resolve(response);
+                    } else {
+                        reject(new Error('TCF API 调用失败'));
+                    }
+                });
+            });
+        }
+
         // 等待 CMP 加载
-        window.__tcfapi('ping', 2, function(pingReturn, success) {
-            if (success) {
-                console.log('CMP 已加载:', pingReturn);
-            }
+        window.__tcfapi('ping', 2).then(pingReturn => {
+            console.log('CMP 已加载:', pingReturn);
+        }).catch(error => {
+            console.error(error);
         });
 
         // 添加事件监听器
-        window.__tcfapi('addEventListener', 2, function(tcData, success) {
-            if (success) {
-                console.log('TC String:', tcData.tcString);
-                console.log('其他 consent 状态信号:', tcData);
-            }
+        window.__tcfapi('addEventListener', 2, (tcData) => {
+            console.log('TC String:', tcData.tcString);
+            console.log('其他 consent 状态信号:', tcData);
+        }).catch(error => {
+            console.error(error);
         });
     </script>
 </head>
@@ -32,12 +44,10 @@
         // 显示 CMP UI 按钮事件
         document.getElementById('promptConsentUI').onclick = function() {
             console.log('1');
-            window.__tcfapi('displayUI', 2, function(tcData, success) {
-                if (success) {
-                    console.log('用户操作后的 TC String:', tcData.tcString);
-                } else {
-                    console.error('显示 CMP UI 时发生错误');
-                }
+            window.__tcfapi('displayUI', 2).then(tcData => {
+                console.log('用户操作后的 TC String:', tcData.tcString);
+            }).catch(error => {
+                console.error('显示 CMP UI 时发生错误:', error);
             });
         };
     </script>
