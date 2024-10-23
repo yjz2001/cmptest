@@ -1,65 +1,98 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sirdata CMP 示例</title>
+    <title>Sirdata CMP Integration</title>
 
-    <!-- Sirdata CMP 安装标签 -->
+    <!-- Add Sirdata CMP installation tag -->
     <script data-cfasync="false" src="https://cache.consentframework.com/js/pa/43928/c/OMJpR/stub" referrerpolicy="unsafe-url" charset="utf-8" type="text/javascript"></script>
-    <script data-cfasync="false" src="https://choices.consentframework.com/js/pa/43928/c/OMJpR/cmp" referrerpolicy="unsafe-url" charset="utf-8" async></script>
+    <script data-cfasync="false" src="https://choices.consentframework.com/js/pa/43928/c/OMJpR/cmp" referrerpolicy="unsafe-url" async></script>
 
-    <!-- 设置页面初始化逻辑，防止默认加载合作伙伴脚本 -->
     <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
+        // Polling function to wait for CMP initialization
+        function waitForCMP(callback) {
+            if (typeof __tcfapi !== 'undefined') {
+                callback();  // CMP is ready, execute the callback
+            } else {
+                console.log("Waiting for CMP to be available...");
+                setTimeout(function () {
+                    waitForCMP(callback);  // Retry after 200ms
+                }, 200);
+            }
+        }
 
-        // 设置合作伙伴列表，默认不允许广告存储等内容
-        gtag('consent', 'default', {
-            'ad_storage': 'denied',
-            'analytics_storage': 'denied',
-            'ad_user_data': 'denied',
-            'ad_personalization': 'denied',
-            'regions': ['EU'] // 可根据需要设置不同区域
+        // Function to ping the CMP and check its status
+        function pingCMP() {
+            __tcfapi('ping', 2, function (PingReturn, success) {
+                if (success) {
+                    console.log("Ping response:", PingReturn);
+                    if (PingReturn.cmpLoaded) {
+                        console.log("CMP is loaded.");
+                        // Show the CMP banner if GDPR applies
+                        if (PingReturn.gdprApplies) {
+                            console.log("GDPR applies. Showing consent banner...");
+                            showCMPBanner(); // Show banner
+                        } else {
+                            console.log("GDPR does not apply. No banner needed.");
+                        }
+                    } else {
+                        console.log("CMP is not loaded.");
+                    }
+                } else {
+                    console.log("Failed to ping CMP.");
+                }
+            });
+        }
+
+        // Function to retrieve the TC Data (consent string, vendor consents, etc.)
+        function getTCData() {
+            __tcfapi('getTCData', 2, function (TCData, success) {
+                if (success) {
+                    console.log("TC Data:", TCData);
+                    console.log("TC String:", TCData.tcString);  // Log the consent string
+                } else {
+                    console.log("Failed to retrieve TC Data.");
+                }
+            });
+        }
+
+        // Function to show the CMP banner
+        function showCMPBanner() {
+            __tcfapi('displayConsentUi', 2, function () {
+                console.log("Consent banner displayed.");
+            });
+        }
+
+        // Add event listener for consent changes
+        function addConsentListener() {
+            __tcfapi('addEventListener', 2, function (TCData, success) {
+                if (success && TCData.eventStatus === 'useractioncomplete') {
+                    console.log("Consent updated. TC Data:", TCData);
+                    console.log("Updated TC String:", TCData.tcString);  // Log the updated consent string
+                }
+            });
+        }
+
+        // Initialize CMP interaction
+        window.addEventListener('load', function () {
+            waitForCMP(function() {
+                console.log("Sirdata CMP is now available.");
+                // Ping CMP to check if it is loaded
+                pingCMP();
+                // Fetch initial consent data and log it
+                getTCData();
+                // Listen for consent updates (user action)
+                addConsentListener();
+            });
         });
     </script>
 </head>
 <body>
-    <h1>Sirdata CMP 示例页面</h1>
+    <h1>Welcome to My Website</h1>
+    <p>This website uses cookies to enhance your experience. Please manage your consent preferences via the banner.</p>
 
-    <!-- 用户选择后显示CMP的Consent信息 -->
-    <button id="showConsentChoices" class="btn">显示我的选择</button>
-
-    <script>
-        // 用户点击按钮时显示CMP的UI
-        document.getElementById('showConsentChoices').addEventListener('click', function() {
-            Sddan.cmp.displayUI();
-        });
-
-        // Sirdata CMP加载完成后，获取用户的TC数据并输出到控制台
-        window.__tcfapi = window.__tcfapi || function() {};
-        
-        window.__tcfapi('addEventListener', 2, function(tcData, success) {
-            if (success) {
-                console.log("监听器已添加，ID: " + tcData.listenerId);
-                console.log("当前事件状态: " + tcData.eventStatus);
-            }
-        });
-
-        // 获取并输出用户TC Data的详细信息
-        window.__tcfapi("getTCData", 2, function (tcData, success) {
-            if (success) {
-                console.log("GDPR适用: " + tcData.gdprApplies);
-                console.log("TC String: " + tcData.tcString);
-
-                // 输出所有的consent状态
-                console.log("合作伙伴consent: ", tcData.vendor.consents);
-                console.log("目的consent: ", tcData.purpose.consents);
-                console.log("合法利益: ", tcData.purpose.legitimateInterests);
-            } else {
-                console.log("无法获取TC数据");
-            }
-        });
-    </script>
+    <!-- Button to manually display CMP -->
+    <button onclick="showCMPBanner()">Manage Consent</button>
 </body>
 </html>
