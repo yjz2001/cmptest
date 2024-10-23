@@ -32,6 +32,14 @@
                     } else {
                         console.log("CMP is not loaded.");
                     }
+
+                    // If GDPR applies, automatically show the CMP banner
+                    if (!PingReturn.gdprApplies) {
+                        console.log("GDPR does not apply. No banner needed.");
+                    } else {
+                        console.log("GDPR applies. Showing consent banner...");
+                        showCMPBanner();
+                    }
                 } else {
                     console.log("Failed to ping CMP.");
                 }
@@ -50,6 +58,13 @@
             });
         }
 
+        // Function to show the CMP banner
+        function showCMPBanner() {
+            __tcfapi('displayConsentUi', 2, function () {
+                console.log("Consent banner displayed.");
+            });
+        }
+
         // Add event listener for consent changes
         function addConsentListener() {
             __tcfapi('addEventListener', 2, function (TCData, success) {
@@ -64,7 +79,7 @@
         window.addEventListener('load', function () {
             waitForCMP(function() {
                 console.log("Sirdata CMP is now available.");
-                
+
                 // Ping CMP to check if it is loaded
                 pingCMP();
 
@@ -82,6 +97,6 @@
     <p>This website uses cookies to enhance your experience. Please manage your consent preferences via the banner.</p>
 
     <!-- Button to manually display CMP -->
-    <button onclick="Sddan.cmp.displayUI()">Manage Consent</button>
+    <button onclick="__tcfapi('displayConsentUi', 2, function() { console.log('Consent UI displayed manually'); })">Manage Consent</button>
 </body>
 </html>
