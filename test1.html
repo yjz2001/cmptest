@@ -19,7 +19,7 @@
         window.__tcfapi('addEventListener', 2, function(tcData, success) {
             if (success) {
                 console.log('TC String:', tcData.tcString);
-                console.log('TC Data:', tcData);
+                console.log('其他 consent 状态信号:', tcData);
             }
         });
     </script>
@@ -27,13 +27,15 @@
 <body>
     <h1>欢迎使用 Sirdata CMP 示例</h1>
     <!-- 用户可操作的按钮 -->
-    <button id="promptConsentUI" class="btn" on="tap:consent.prompt(consent=sirdata)" role="button">Manage Consent</button>
+    <button id="promptConsentUI" class="btn">我的同意选择</button>
     <script>
         // 显示 CMP UI 按钮事件
         document.getElementById('promptConsentUI').onclick = function() {
-            window.__tcfapi('prompt', 2, function(tcData, success) {
+            window.__tcfapi('displayUI', 2, function(tcData, success) {
                 if (success) {
-                    console.log('new TC String:', tcData.tcString);
+                    console.log('用户操作后的 TC String:', tcData.tcString);
+                } else {
+                    console.error('显示 CMP UI 时发生错误');
                 }
             });
         };
