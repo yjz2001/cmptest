@@ -12,7 +12,7 @@
     <script>
         // Polling function to wait for CMP initialization
         function waitForCMP(callback) {
-            if (typeof Sddan !== 'undefined' && typeof Sddan.cmp !== 'undefined') {
+            if (typeof __tcfapi !== 'undefined') {
                 callback();  // CMP is ready, execute the callback
             } else {
                 console.log("Waiting for CMP to be available...");
@@ -22,25 +22,57 @@
             }
         }
 
-        // Callback to log consent string when available
-        function onConsentUpdate(tcData) {
-            if (tcData && tcData.tcString) {
-                console.log("TC String:", tcData.tcString);  // Log the consent string
-            } else {
-                console.log("No consent data available");
-            }
+        // Function to ping the CMP and check its status
+        function pingCMP() {
+            __tcfapi('ping', 2, function (PingReturn, success) {
+                if (success) {
+                    console.log("Ping response:", PingReturn);
+                    if (PingReturn.cmpLoaded) {
+                        console.log("CMP is loaded.");
+                    } else {
+                        console.log("CMP is not loaded.");
+                    }
+                } else {
+                    console.log("Failed to ping CMP.");
+                }
+            });
+        }
+
+        // Function to retrieve the TC Data (consent string, vendor consents, etc.)
+        function getTCData() {
+            __tcfapi('getTCData', 2, function (TCData, success) {
+                if (success) {
+                    console.log("TC Data:", TCData);
+                    console.log("TC String:", TCData.tcString);  // Log the consent string
+                } else {
+                    console.log("Failed to retrieve TC Data.");
+                }
+            });
+        }
+
+        // Add event listener for consent changes
+        function addConsentListener() {
+            __tcfapi('addEventListener', 2, function (TCData, success) {
+                if (success && TCData.eventStatus === 'useractioncomplete') {
+                    console.log("Consent updated. TC Data:", TCData);
+                    console.log("Updated TC String:", TCData.tcString);  // Log the updated consent string
+                }
+            });
         }
 
         // Initialize CMP interaction
         window.addEventListener('load', function () {
             waitForCMP(function() {
                 console.log("Sirdata CMP is now available.");
+                
+                // Ping CMP to check if it is loaded
+                pingCMP();
 
                 // Fetch initial consent data and log it
-                Sddan.cmp.getConsentData(onConsentUpdate);
+                getTCData();
 
-                // Listen for consent updates
-                Sddan.cmp.addEventListener('onConsentChange', onConsentUpdate);
+                // Listen for consent updates (user action)
+                addConsentListener();
             });
         });
     </script>
