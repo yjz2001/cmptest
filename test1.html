@@ -4,11 +4,44 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sirdata CMP 示例</title>
-    <!-- 添加 Sirdata CMP 安装标签 -->
+
+    <!-- 添加 Sirdata CMP 安装代码 -->
     <script data-cfasync="false" src="https://cache.consentframework.com/js/pa/43928/c/OMJpR/stub" referrerpolicy="unsafe-url" charset="utf-8" type="text/javascript"></script>
     <script data-cfasync="false" src="https://choices.consentframework.com/js/pa/43928/c/OMJpR/cmp" referrerpolicy="unsafe-url" async></script>
+
+    <!-- Google 同意模式设置 -->
     <script>
-        function tcfApi(command, version, callback) {
+        // 定义 dataLayer 和 gtag 函数
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+
+        // 为特定区域设置默认同意（根据要求定义区域代码，如欧盟国家）
+        gtag('consent', 'default', {
+            'ad_storage': 'denied',
+            'ad_user_data': 'denied',
+            'ad_personalization': 'denied',
+            'analytics_storage': 'denied',
+            'regions': ['FR', 'DE', 'IT'] // 替换为适当的 ISO 3166-2 区域代码
+        });
+
+        // 为所有其他区域设置默认同意
+        gtag('consent', 'default', {
+            'ad_storage': 'denied',
+            'ad_user_data': 'denied',
+            'ad_personalization': 'denied',
+            'analytics_storage': 'denied'
+        });
+    </script>
+</head>
+<body>
+    <h1>欢迎使用 Sirdata CMP 示例</h1>
+
+    <!-- 同意按钮 -->
+    <button id="promptConsentUI" class="btn">我的同意选择</button>
+
+    <script>
+        // 使用 TCF API 与 CMP 进行交互
+        function tcfApi(command, version) {
             return new Promise((resolve, reject) => {
                 window.__tcfapi(command, version, (response, success) => {
                     if (success) {
@@ -20,36 +53,18 @@
             });
         }
 
-        // 等待 CMP 加载
+        // 检查 CMP 是否加载
         tcfApi('ping', 2).then(pingReturn => {
             console.log('CMP 已加载:', pingReturn);
         }).catch(error => {
             console.error(error);
         });
 
-        // 添加事件监听器
-        tcfApi('addEventListener', 2, (tcData) => {
-            console.log('TC String:', tcData.tcString);
-            console.log('其他 consent 状态信号:', tcData);
-        }).catch(error => {
-            console.error(error);
-        });
-    </script>
-</head>
-<body>
-    <h1>欢迎使用 Sirdata CMP 示例</h1>
-    <!-- 用户可操作的按钮 -->
-    <button id="promptConsentUI" class="btn">我的同意选择</button>
-    <div>
-    <a href='javascript:Sddan.cmp.displayUI()'>manage consent</a></div>
-    <script>
-        // 显示 CMP UI 按钮事件
+        // 当用户点击按钮时显示 CMP UI 并记录用户的选择
         document.getElementById('promptConsentUI').onclick = function() {
-             console.log('1');
             tcfApi('getTCData', 2).then(tcData => {
                 console.log('当前 TC Data:', tcData);
 
-                // 检查 displayStatus 是否为 'enabled'
                 if (tcData.displayStatus === 'enabled') {
                     return tcfApi('displayUI', 2);
                 } else {
