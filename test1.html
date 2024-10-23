@@ -5,80 +5,61 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sirdata CMP 示例</title>
 
-    <!-- 添加 Sirdata CMP 安装代码 -->
+    <!-- Sirdata CMP 安装标签 -->
     <script data-cfasync="false" src="https://cache.consentframework.com/js/pa/43928/c/OMJpR/stub" referrerpolicy="unsafe-url" charset="utf-8" type="text/javascript"></script>
-    <script data-cfasync="false" src="https://choices.consentframework.com/js/pa/43928/c/OMJpR/cmp" referrerpolicy="unsafe-url" async></script>
+    <script data-cfasync="false" src="https://choices.consentframework.com/js/pa/43928/c/OMJpR/cmp" referrerpolicy="unsafe-url" charset="utf-8" async></script>
 
-    <!-- Google 同意模式设置 -->
+    <!-- 设置页面初始化逻辑，防止默认加载合作伙伴脚本 -->
     <script>
-        // 定义 dataLayer 和 gtag 函数
         window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
+        function gtag() { dataLayer.push(arguments); }
 
-        // 为特定区域设置默认同意（根据要求定义区域代码，如欧盟国家）
+        // 设置合作伙伴列表，默认不允许广告存储等内容
         gtag('consent', 'default', {
             'ad_storage': 'denied',
-            'ad_user_data': 'denied',
-            'ad_personalization': 'denied',
             'analytics_storage': 'denied',
-            'regions': ['FR', 'DE', 'IT'] // 替换为适当的 ISO 3166-2 区域代码
-        });
-
-        // 为所有其他区域设置默认同意
-        gtag('consent', 'default', {
-            'ad_storage': 'denied',
             'ad_user_data': 'denied',
             'ad_personalization': 'denied',
-            'analytics_storage': 'denied'
+            'regions': ['EU'] // 可根据需要设置不同区域
         });
     </script>
 </head>
 <body>
-  <button id="promptConsentUI" class="btn" on="tap:consent.prompt(consent=sirdata)" role="button">我的同意选项</button>
+    <h1>Sirdata CMP 示例页面</h1>
+
+    <!-- 用户选择后显示CMP的Consent信息 -->
+    <button id="showConsentChoices" class="btn">显示我的选择</button>
+
+    <script>
+        // 用户点击按钮时显示CMP的UI
+        document.getElementById('showConsentChoices').addEventListener('click', function() {
+            Sddan.cmp.displayUI();
+        });
+
+        // Sirdata CMP加载完成后，获取用户的TC数据并输出到控制台
+        window.__tcfapi = window.__tcfapi || function() {};
+        
+        window.__tcfapi('addEventListener', 2, function(tcData, success) {
+            if (success) {
+                console.log("监听器已添加，ID: " + tcData.listenerId);
+                console.log("当前事件状态: " + tcData.eventStatus);
+            }
+        });
+
+        // 获取并输出用户TC Data的详细信息
+        window.__tcfapi("getTCData", 2, function (tcData, success) {
+            if (success) {
+                console.log("GDPR适用: " + tcData.gdprApplies);
+                console.log("TC String: " + tcData.tcString);
+
+                // 输出所有的consent状态
+                console.log("合作伙伴consent: ", tcData.vendor.consents);
+                console.log("目的consent: ", tcData.purpose.consents);
+                console.log("合法利益: ", tcData.purpose.legitimateInterests);
+            } else {
+                console.log("无法获取TC数据");
+            }
+        });
+    </script>
 </body>
-<script>
-  // 定义处理CMP结果的函数
-  function logConsentData() {
-    window.__tcfapi("getTCData", 2, function (tcData, success) {
-      if (!success) {
-        console.log("无法获取 TCData");
-        return;
-      }
-
-      // 输出TC String
-      console.log("TC String: ", tcData.tcString);
-
-      // 判断是否适用GDPR
-      if (!tcData.gdprApplies) {
-        console.log("GDPR 不适用");
-      }
-
-      // 输出所有 consent 状态和合法利益状态
-      console.log("Vendor Consents: ", tcData.vendor.consents);
-      console.log("Vendor Legitimate Interests: ", tcData.vendor.legitimateInterests);
-      console.log("Purpose Consents: ", tcData.purpose.consents);
-      console.log("Purpose Legitimate Interests: ", tcData.purpose.legitimateInterests);
-
-      // 检查不同 SDK 的 consent 状态，例如 Google 和其他第三方
-      const sdkVendorIds = [755, 597, 1316, 9, 8]; // 这些是你提供的 SDK ID
-      sdkVendorIds.forEach((vendorId) => {
-        console.log(`Vendor ID ${vendorId} 的 consent 状态: `, tcData.vendor.consents[vendorId]);
-        console.log(`Vendor ID ${vendorId} 的合法利益状态: `, tcData.vendor.legitimateInterests[vendorId]);
-      });
-    });
-  }
-
-  // 当用户确认或重新确认他们的选择时，监听并输出TC Data
-  window.__tcfapi("addEventListener", 2, function (tcData, success) {
-      console.log('1')
-    if (success) {
-      console.log("用户操作完成，输出 TC Data");
-      logConsentData();
-    }
-  });
-
-  // 页面加载完成时，也获取一次当前的 consent 状态
-  window.addEventListener('load', logConsentData);
-</script>
-
 </html>
