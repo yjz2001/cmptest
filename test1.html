@@ -10,7 +10,19 @@
     <script data-cfasync="false" src="https://choices.consentframework.com/js/pa/43928/c/OMJpR/cmp" referrerpolicy="unsafe-url" charset="utf-8" async></script>
 
     <script>
-        // Sirdata CMP callback function to capture the consent string (tc.string)
+        // Polling function to wait for CMP initialization
+        function waitForCMP(callback) {
+            if (typeof Sddan !== 'undefined' && typeof Sddan.cmp !== 'undefined') {
+                callback();  // CMP is ready, execute the callback
+            } else {
+                console.log("Waiting for CMP to be available...");
+                setTimeout(function () {
+                    waitForCMP(callback);  // Retry after 200ms
+                }, 200);
+            }
+        }
+
+        // Callback to log consent string when available
         function onConsentUpdate(tcData) {
             if (tcData && tcData.tcString) {
                 console.log("TC String:", tcData.tcString);  // Log the consent string
@@ -19,15 +31,17 @@
             }
         }
 
-        // Wait for the CMP API to be available
+        // Initialize CMP interaction
         window.addEventListener('load', function () {
-            // Use the CMP API to subscribe to consent updates
-            if (typeof Sddan !== 'undefined' && typeof Sddan.cmp !== 'undefined') {
-                Sddan.cmp.getConsentData(onConsentUpdate); // Fetch initial consent data
-                Sddan.cmp.addEventListener('onConsentChange', onConsentUpdate); // Listen for consent updates
-            } else {
-                console.error('Sirdata CMP is not available.');
-            }
+            waitForCMP(function() {
+                console.log("Sirdata CMP is now available.");
+
+                // Fetch initial consent data and log it
+                Sddan.cmp.getConsentData(onConsentUpdate);
+
+                // Listen for consent updates
+                Sddan.cmp.addEventListener('onConsentChange', onConsentUpdate);
+            });
         });
     </script>
 </head>
@@ -35,6 +49,7 @@
     <h1>Welcome to My Website</h1>
     <p>This website uses cookies to enhance your experience. Please manage your consent preferences via the banner.</p>
 
+    <!-- Button to manually display CMP -->
     <button onclick="Sddan.cmp.displayUI()">Manage Consent</button>
 </body>
 </html>
