@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consent Management with Sirdata CMP</title>
+
+    <!-- Add Sirdata CMP installation tag -->
+    <script data-cfasync="false" src="https://cache.consentframework.com/js/pa/43928/c/OMJpR/stub" referrerpolicy="unsafe-url" charset="utf-8" type="text/javascript"></script>
+    <script data-cfasync="false" src="https://choices.consentframework.com/js/pa/43928/c/OMJpR/cmp" referrerpolicy="unsafe-url" charset="utf-8" async></script>
+
+    <script>
+        // Show the CMP UI when the page loads
+        window.onload = function() {
+            // Add an event listener to detect user interaction with CMP
+            window.__tcfapi('addEventListener', 2, function(tcData, success) {
+                if (success) {
+                    console.log("CMP listener added. Event Status: " + tcData.eventStatus);
+
+                    // When user interacts with the CMP, log the tcString
+                    if (tcData.eventStatus === 'useractioncomplete') {
+                        // Fetch and log the TCData to get the tcString
+                        window.__tcfapi('getTCData', 2, function(tcData, success) {
+                            if (success) {
+                                console.log("User's TCData:", tcData);
+                                console.log("User's TC String:", tcData.tcString);
+                            }
+                        });
+                    }
+                }
+            });
+
+            // Optionally, check if CMP is already loaded
+            window.__tcfapi('ping', 2, function(pingReturn) {
+                if (pingReturn.cmpLoaded) {
+                    console.log("CMP loaded successfully.");
+                }
+            });
+        };
+
+        // Function to manually trigger the CMP banner
+        function showConsentUI() {
+            window.__tcfapi('displayUI', 2);
+        }
+    </script>
+</head>
+<body>
+
+    <h1>Sirdata CMP Consent Example</h1>
+    
+    <!-- Button to manually trigger the CMP UI -->
+    <button onclick="showConsentUI()">Revisit Consent Choices</button>
+
+    <div>
+        [Company Name] obtains your consent in accordance with the policies and technical specifications of the IAB Europe Transparency & Consent Framework. It uses the Consent Management Platform n°92.
+        <br/><br/>
+        You can change your choices at any time by <a href="javascript:showConsentUI()">clicking here</a>.
+    </div>
+
+</body>
+</html>
