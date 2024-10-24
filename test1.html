@@ -6,6 +6,9 @@
     <title>Sirdata CMP Example</title>
     <!-- Add the Sirdata CMP scripts -->
     <script type="text/javascript">
+        // Set SameSite attribute for cookies
+        document.cookie = "CookieConsent=1; SameSite=None; Secure";
+        
         window.__cmp = (function () {
             window.addEventListener('message', function (event) {
                 window.__cmp.receiveMessage(event);
@@ -39,6 +42,7 @@
 </head>
 <body>
     <!-- Button to log message and reopen CMP -->
+    <div>hello</div>
     <button id="cmpButton" onclick="handleButtonClick()">Open CMP</button>
 
     <script>
@@ -88,6 +92,17 @@
                     console.log("Updated TCString:", tcData.tcString);
                 }
             });
+        }
+
+        // Check if in an iframe and send postMessage if necessary
+        if (window.self !== window.top) {
+            window.parent.postMessage({
+                __cmpCall: {
+                    command: 'getConsentData',
+                    parameter: null,
+                    callId: 'iframe'
+                }
+            }, '*');
         }
     </script>
 </body>
