@@ -5,8 +5,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sirdata CMP Example</title>
     <!-- Add the Sirdata CMP scripts -->
-    <script data-cfasync="false" src="https://cache.consentframework.com/js/pa/43928/c/OMJpR/stub" referrerpolicy="unsafe-url" charset="utf-8" type="text/javascript"></script>
-    <script data-cfasync="false" src="https://choices.consentframework.com/js/pa/43928/c/OMJpR/cmp" referrerpolicy="unsafe-url" charset="utf-8" async></script>
+    <script type="text/javascript">
+        window.__cmp = (function () {
+            window.addEventListener('message', function (event) {
+                window.__cmp.receiveMessage(event);
+            });
+
+            var commandQueue = [];
+            var cmp = function (command, parameter, callback) {
+                commandQueue.push({
+                    command: command,
+                    parameter: parameter,
+                    callback: callback
+                });
+            };
+            cmp.commandQueue = commandQueue;
+            cmp.receiveMessage = function (event) {
+                var data = event && event.data && event.data.__cmpCall;
+                if (data) {
+                    commandQueue.push({
+                        callId: data.callId,
+                        command: data.command,
+                        parameter: data.parameter,
+                        event: event
+                    });
+                }
+            };
+            cmp.gdprAppliesGlobally = true;
+            return cmp;
+        }());
+    </script>
+    <script type="text/javascript" src="https://choices.consentframework.com/js/pa/43928/c/OMJpR/cmp" async></script>
 </head>
 <body>
     <!-- Button to log message and reopen CMP -->
@@ -16,28 +45,50 @@
         // Function to handle button click
         function handleButtonClick() {
             console.log('1');
-            // Use __tcfapi to display the CMP UI
-            window.__tcfapi('displayConsentUi', 2, function(success) {
-                if (!success) {
-                    console.error('Failed to display CMP UI');
+            if (typeof window.__cmp === 'function') {
+                window.__cmp('showConsentTool');
+            } else {
+                console.error('__cmp is not available');
+            }
+        }
+
+        // Function to log TCData and TCString
+        function logTCData() {
+            if (typeof window.__tcfapi === 'function') {
+                window.__tcfapi('getTCData', 2, function(tcData, success) {
+                    if (success) {
+                        console.log("TCData:", tcData);
+                        console.log("TCString:", tcData.tcString);
+                    }
+                });
+            } else {
+                console.error('__tcfapi is not available');
+            }
+        }
+
+        // Wait for CMP to be ready
+        function waitForCMP() {
+            if (typeof window.__cmp === 'function') {
+                window.__cmp('addEventListener', 'cmpReady', function() {
+                    console.log('CMP is ready');
+                    logTCData();
+                });
+            } else {
+                setTimeout(waitForCMP, 50);
+            }
+        }
+
+        // Start waiting for CMP
+        waitForCMP();
+
+        // Add event listener to log TCString when user changes privacy settings
+        if (typeof window.__tcfapi === 'function') {
+            window.__tcfapi('addEventListener', 2, function(tcData, success) {
+                if (success) {
+                    console.log("Updated TCString:", tcData.tcString);
                 }
             });
         }
-
-        // Log TCData and TCString when the page loads
-        window.__tcfapi("getTCData", 2, function(tcData, success) {
-            if (success) {
-                console.log("TCData:", tcData);
-                console.log("TCString:", tcData.tcString);
-            }
-        });
-
-        // Add event listener to log TCString when user changes privacy settings
-        window.__tcfapi("addEventListener", 2, function(tcData, success) {
-            if (success) {
-                console.log("Updated TCString:", tcData.tcString);
-            }
-        });
     </script>
 </body>
 </html>
