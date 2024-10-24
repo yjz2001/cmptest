@@ -1,14 +1,15 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sirdata CMP Example</title>
-    <!-- Add the Sirdata CMP scripts -->
+
+    <script data-cfasync="false" src="https://cache.consentframework.com/js/pa/43928/c/OMJpR/stub" referrerpolicy="unsafe-url" charset="utf-8" type="text/javascript"></script>
+    <script data-cfasync="false" src="https://choices.consentframework.com/js/pa/43928/c/OMJpR/cmp" referrerpolicy="unsafe-url" charset="utf-8" type="text/javascript" async></script>
+    
     <script type="text/javascript">
-        // Set SameSite attribute for cookies
-        document.cookie = "CookieConsent=1; SameSite=None; Secure";
-        
         window.__cmp = (function () {
             window.addEventListener('message', function (event) {
                 window.__cmp.receiveMessage(event);
@@ -38,16 +39,11 @@
             return cmp;
         }());
     </script>
-    <script data-cfasync="false" src="https://cache.consentframework.com/js/pa/43928/c/OMJpR/stub" referrerpolicy="unsafe-url" charset="utf-8" type="text/javascript"></script>
-    <script data-cfasync="false" src="https://choices.consentframework.com/js/pa/43928/c/OMJpR/cmp" referrerpolicy="unsafe-url" charset="utf-8" type="text/javascript" async></script>
 </head>
 <body>
-    <!-- Button to log message and reopen CMP -->
-    <div>hello</div>
     <button id="cmpButton" onclick="handleButtonClick()">Open CMP</button>
 
     <script>
-        // Function to handle button click
         function handleButtonClick() {
             console.log('1');
             if (typeof window.__cmp === 'function') {
@@ -57,7 +53,6 @@
             }
         }
 
-        // Function to log TCData and TCString
         function logTCData() {
             if (typeof window.__tcfapi === 'function') {
                 window.__tcfapi('getTCData', 2, function(tcData, success) {
@@ -71,7 +66,6 @@
             }
         }
 
-        // Wait for CMP to be ready
         function waitForCMP() {
             if (typeof window.__cmp === 'function') {
                 window.__cmp('addEventListener', 'cmpReady', function() {
@@ -83,10 +77,8 @@
             }
         }
 
-        // Start waiting for CMP
         waitForCMP();
 
-        // Add event listener to log TCString when user changes privacy settings
         if (typeof window.__tcfapi === 'function') {
             window.__tcfapi('addEventListener', 2, function(tcData, success) {
                 if (success) {
@@ -95,16 +87,28 @@
             });
         }
 
-        // Check if in an iframe and send postMessage if necessary
-        if (window.self !== window.top) {
-            window.parent.postMessage({
-                __cmpCall: {
-                    command: 'getConsentData',
-                    parameter: null,
-                    callId: 'iframe'
+        // New: Add event listener for consent changes
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.__cmpReturn) {
+                var returnMsg = event.data.__cmpReturn;
+                if (returnMsg.success && returnMsg.returnValue) {
+                    console.log('Consent data:', returnMsg.returnValue);
                 }
-            }, '*');
+            }
+        });
+
+        // New: Check CMP status periodically
+        function checkCMPStatus() {
+            if (typeof window.__cmp === 'function') {
+                window.__cmp('getConsentData', null, function(consentData, success) {
+                    if (success) {
+                        console.log('Consent data:', consentData);
+                    }
+                });
+            }
+            setTimeout(checkCMPStatus, 1000);
         }
+        checkCMPStatus();
     </script>
 </body>
 </html>
