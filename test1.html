@@ -16,7 +16,12 @@
         // Function to handle button click
         function handleButtonClick() {
             console.log('1');
-            window.Sddan.cmp.displayUI();
+            // Use __tcfapi to display the CMP UI
+            window.__tcfapi('displayConsentUi', 2, function(success) {
+                if (!success) {
+                    console.error('Failed to display CMP UI');
+                }
+            });
         }
 
         // Log TCData and TCString when the page loads
